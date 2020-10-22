@@ -1,0 +1,107 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using InStep.eDNA.EzDNAApiNet;
+
+namespace WriteHistReadHist
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            //create container for fake data
+            DNAData FakeTestData = GetFakeData();
+            //configure primary/secondary history and FQShortID
+            string PriHist = "EDNA.HISTORY";
+            string SecHist = "EDNA2.HISTORY";
+            string FQShortID = "EDNA.UNIV.4321";
+            int Ret;
+            string strError;
+
+            //write to primary
+            Ret = History.EzHistSetValues(PriHist, FQShortID, true, UberDataTypeEnum.UDR_DATA_TYPE_DOUBLE, 
+                                          (ushort)FakeTestData.Times.Count, FakeTestData.Times.ToArray(), 
+                                          FakeTestData.TimesNano.ToArray(), FakeTestData.Statuses.ToArray(), 
+                                          FakeTestData.StatusesRaw.ToArray(), FakeTestData.Values.ToArray(), 
+                                          out strError);
+            //check return
+            if (Ret==0)
+            { Console.WriteLine("Successful write to Primary."); }
+            else
+            { Console.WriteLine(string.Format("Failed to write to Primary.  Ret:{0}  Error:{1}",Ret,strError)); }
+
+            //write to secondary
+            Ret = History.EzHistSetValues(SecHist, FQShortID, true, UberDataTypeEnum.UDR_DATA_TYPE_DOUBLE,
+                                          (ushort)FakeTestData.Times.Count, FakeTestData.Times.ToArray(),
+                                          FakeTestData.TimesNano.ToArray(), FakeTestData.Statuses.ToArray(),
+                                          FakeTestData.StatusesRaw.ToArray(), FakeTestData.Values.ToArray(),
+                                          out strError);
+            //check return
+            if (Ret == 0)
+            { Console.WriteLine("Successful write to Secondary."); }
+            else
+            { Console.WriteLine(string.Format("Failed to write to Secondary.  Ret:{0}  Error:{1}", Ret, strError)); }
+
+            //read data
+            Int64 i64StartTime = FakeTestData.Times[0];
+            Int64 i64EndTime = FakeTestData.Times[FakeTestData.Times.Count -1]; 
+            int iPeriod = Utility.StringToPeriod("00:00:01");
+            uint uiStartNanoSeconds = 0; 
+            uint uiEndNanoSeconds = 999;
+            uint uiPeriodNanoSeconds = 0;
+            ushort usHistMethod = (ushort)eDNAHistoryEnum.EDNA_HIST_RAW;
+            uint uiKey;
+            Int64 i64UTCTime;
+            uint uiNanoSeconds;
+            String strStartime;
+            UberValueObject uberValueObject;
+            string strValue;
+            ushort usStatus;
+            String strStatus;
+            Int64 i64RawStatus;
+            String strRawStatus;
+
+            //Initialize the history collection
+            int nRet = History.EzGetHistDirect(PriHist, FQShortID, i64StartTime, uiStartNanoSeconds, i64EndTime, uiEndNanoSeconds, iPeriod, uiPeriodNanoSeconds, usHistMethod, out uiKey);
+
+            //Get values if the initialization was successful
+            while (nRet == 0)
+            {
+                // Retrieve data            
+                nRet = History.EzGetNextHist(uiKey,
+                                out i64UTCTime, out uiNanoSeconds,
+                                out strStartime,
+                                out uberValueObject,
+                                out strValue,
+                                out usStatus, out strStatus,
+                                out i64RawStatus, out strRawStatus);
+                
+            }
+        }
+        static DNAData GetFakeData()
+        {
+            DateTime Seed = DateTime.Today.AddDays(-1);
+            DNAData FakeData = new DNAData();
+            for (int i = 1000; i > 0; i--)
+            {
+                string FormattedDate = Seed.AddSeconds(-i).ToString("MM/dd/yyyy h:mm:ss tt");
+                FakeData.Times.Add(Utility.StringToUTCTimeEx(FormattedDate));
+                FakeData.TimesNano.Add(0);
+                FakeData.Values.Add(i.ToString());
+                FakeData.Statuses.Add(3);
+                FakeData.StatusesRaw.Add(3);
+            }
+            return FakeData;
+        }
+    }
+    class DNAData
+    {
+        public List<long> Times = new List<long>();
+        public List<uint> TimesNano = new List<uint>();
+        public List<string> Values = new List<string>();
+        public List<ushort> Statuses = new List<ushort>();
+        public List<ulong> StatusesRaw = new List<ulong>();
+    }
+}
