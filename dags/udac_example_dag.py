@@ -29,7 +29,7 @@ stage_songs_to_redshift = StageToRedshiftOperator(
     redshift_conn_id="redshift",
     aws_credentials_id="aws_credentials",
     s3_bucket="udacity-dend",
-    s3_key="s3://udacity-dend/song_data/A/A/A"
+    s3_key="song_data/A/A/A/*.json"
 )
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
