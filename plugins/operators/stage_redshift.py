@@ -12,9 +12,9 @@ class StageToRedshiftOperator(BaseOperator):
         FROM '{}'
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
-        REGION 'us-east-1'
+        REGION 'us-west-2'
         FORMAT AS JSON '{}'
-        COMPUTEDATA OFF
+        COMPUPDATE OFF
     """
     
     @apply_defaults
@@ -40,6 +40,7 @@ class StageToRedshiftOperator(BaseOperator):
         self.log.info('StageToRedshiftOperator running . . . ')
         aws_hook  = AwsHook(self.aws_credentials_id)
         credentials = aws_hook.get_credentials()
+        
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
         self.log.info('Clearing data from Redshift table')
