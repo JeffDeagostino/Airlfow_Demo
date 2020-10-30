@@ -11,7 +11,7 @@ from helpers import SqlQueries
 
 default_args = {
     'owner': 'udacity',
-    'start_date': datetime(2019, 1, 12),
+    'start_date': datetime(2018, 11, 1),
 }
 
 dag = DAG('udac_example_dag',
@@ -39,13 +39,15 @@ stage_events_to_redshift = StageToRedshiftOperator(
     redshift_conn_id="redshift",
     aws_credentials_id="aws_credentials",
     s3_bucket="udacity-dend",
-    s3_key="log_data/{{execution-date.strftime('%Y')}}/{{execution-date.strftime('%m')}}/{{ds}}-events.json"
+    s3_key="log_data/{{execution_date.strftime('%Y')}}/{{execution_date.strftime('%m')}}/{{ds}}-events.json"
 )
 
 load_songplays_table = LoadFactOperator(
     task_id='Load_songplays_fact_table',
     dag=dag,
     redshift_conn_id="redshift",
+    table="songplays",
+    columns="(start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)",
     sql_to_load_tbl = SqlQueries.songplay_table_insert,
     provide_context=True
 )
@@ -54,6 +56,7 @@ load_user_dimension_table = LoadDimensionOperator(
     task_id='Load_user_dim_table',
     dag=dag,
     redshift_conn_id="redshift",
+    table="users",
     sql_to_load_tbl = SqlQueries.user_table_insert,
     provide_context=True
 )
@@ -62,6 +65,7 @@ load_song_dimension_table = LoadDimensionOperator(
     task_id='Load_song_dim_table',
     dag=dag,
     redshift_conn_id="redshift",
+    table="songs",
     sql_to_load_tbl = SqlQueries.song_table_insert,
     provide_context=True
 )
@@ -70,6 +74,7 @@ load_artist_dimension_table = LoadDimensionOperator(
     task_id='Load_artist_dim_table',
     dag=dag,
     redshift_conn_id="redshift",
+    table="artists",
     sql_to_load_tbl = SqlQueries.artist_table_insert,
     provide_context=True
 )
@@ -78,6 +83,7 @@ load_time_dimension_table = LoadDimensionOperator(
     task_id='Load_time_dim_table',
     dag=dag,
     redshift_conn_id="redshift",
+    table="time",
     sql_to_load_tbl = SqlQueries.time_table_insert,
     provide_context=True
 )

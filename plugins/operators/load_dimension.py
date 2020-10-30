@@ -21,10 +21,6 @@ class LoadDimensionOperator(BaseOperator):
     def execute(self, context):
         self.log.info('LoadDimensionOperator running . . .')
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
-        #sql_statement = "INSERT INTO {} {} {}".format(self.table, self.table_columns,self.sql_to_load_tbl)
-        sql_statement = '''
-            INSERT INTO public.{table}
-            {sql_to_load_tbl}
-        '''
+        sql_statement = "INSERT INTO {} {}".format(self.table, self.sql_to_load_tbl)
 
         redshift.run(sql_statement)
