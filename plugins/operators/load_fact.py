@@ -10,7 +10,7 @@ class LoadFactOperator(BaseOperator):
     def __init__(self,
                  redshift_conn_id="",
                  table="",
-                 columns"",
+                 columns="",
                  sql_to_load_tbl ="",
                  *args, **kwargs):
 
